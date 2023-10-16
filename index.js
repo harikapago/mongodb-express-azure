@@ -117,6 +117,41 @@ app.delete('/delete-all-audio', async (req, res) => {
   }
 });
 
+// Add this route to fetch audio data by agent
+app.get('/fetch-audio-by-agent/:agent', async (req, res) => {
+  try {
+    const { agent } = req.params;
+    const audioByAgent = await Audio.find({ agent });
+    res.status(200).json(audioByAgent);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add this route to fetch audio data by surveyId
+app.get('/fetch-audio-by-surveyId/:surveyId', async (req, res) => {
+  try {
+    const { surveyId } = req.params;
+    const audioBySurveyId = await Audio.find({ surveyId });
+    res.status(200).json(audioBySurveyId);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add this route to fetch audio data by category
+app.get('/fetch-audio-by-category/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+    const audioByCategory = await Audio.find({ category });
+    res.status(200).json(audioByCategory);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 
