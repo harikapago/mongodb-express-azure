@@ -117,6 +117,24 @@ app.delete('/delete-audio-by-id/:id', async (req, res) => {
   }
 });
 
+// Add this route to delete all audio entries
+app.delete('/delete-all-audio', async (req, res) => {
+  try {
+    // Use the deleteMany method to delete all audio entries
+    const deleteResult = await Audio.deleteMany({});
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ error: 'No audio entries found to delete' });
+    }
+
+    res.status(200).json({ message: 'All audio entries deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 // Start the Express server
 app.listen(port, () => {
