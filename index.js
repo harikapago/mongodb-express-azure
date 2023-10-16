@@ -71,6 +71,53 @@ app.get('/fetch-all-audio', async (req, res) => {
 });
 
 
+// Add this route to delete audio by title
+app.delete('/delete-audio-by-title', async (req, res) => {
+  try {
+    const { title } = req.query;
+
+    // Validate that the title parameter is provided
+    if (!title) {
+      return res.status(400).json({ error: 'Title parameter is required' });
+    }
+
+    const deletedAudio = await Audio.findOneAndDelete({ title });
+
+    if (!deletedAudio) {
+      return res.status(404).json({ error: 'Audio not found' });
+    }
+
+    res.status(200).json({ message: 'Audio deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add this route to delete audio by ID
+app.delete('/delete-audio-by-id/:id', async (req, res) => {
+  try {
+    const audioId = req.params.id;
+
+    // Validate that the ID parameter is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(audioId)) {
+      return res.status(400).json({ error: 'Invalid audio ID' });
+    }
+
+    const deletedAudio = await Audio.findByIdAndDelete(audioId);
+
+    if (!deletedAudio) {
+      return res.status(404).json({ error: 'Audio not found' });
+    }
+
+    res.status(200).json({ message: 'Audio deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 // Start the Express server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
