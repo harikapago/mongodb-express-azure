@@ -223,6 +223,41 @@ app.post('/post-question', upload.fields([
   }
 });
 
+// Add this route to delete questions by engquetext
+app.delete('/delete-question-by-engquetext/:engquetext', async (req, res) => {
+  try {
+    const { engquetext } = req.params;
+    const deletedQuestions = await Question.deleteMany({ engquetext });
+
+    if (deletedQuestions.deletedCount === 0) {
+      return res.status(404).json({ error: 'No questions found with the specified engquetext' });
+    }
+
+    res.status(200).json({ message: 'Questions deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+// Add this route to delete questions by questionNumber
+app.delete('/delete-question-by-questionNumber/:questionNumber', async (req, res) => {
+  try {
+    const { questionNumber } = req.params;
+    const deletedQuestions = await Question.deleteMany({ questionNumber });
+
+    if (deletedQuestions.deletedCount === 0) {
+      return res.status(404).json({ error: 'No questions found with the specified questionNumber' });
+    }
+
+    res.status(200).json({ message: 'Questions deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 
 // Start the Express server
