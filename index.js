@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const app = express();
 const cors = require('cors');
-const nodemailer = require('nodemailer');
+
 
 app.use(cors());
 app.use(express.json());
@@ -156,43 +156,6 @@ app.get('/fetch-audio-by-category/:category', async (req, res) => {
   }
 });
 
-
-// for sending mails
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',
-  auth: {
-    user: 'harika.krishna99@gmail.com',
-    pass: 'bmkkbdjbtdmlhsue',
-  },
-});
-
-
-// API endpoint to send an email
-app.post('/send-email', (req, res) => {
-  const { emailid, otpnumber } = req.body;
-
-  // Email content
-  const mailOptions = {
-    from: 'harika.krishna99@gmail.com',
-    to: emailid, // Replace with your recipient's email address
-    subject: 'Otp to login into Digital Parliament',
-    html: `
-      <p>Otp: ${otpnumber}</p>
-     <p>Never share Otp details with others,This otp is valid only for 30 seconds.</p>
-    `,
-  };
-
-  // Send the email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error(error);
-      res.status(500).json({error, message: 'Error sending email' });
-    } else {
-      console.log('Email sent: ' + info.response);
-      res.status(200).json({ message: 'Email sent successfully' });
-    }
-  });
-});
 
 
 
