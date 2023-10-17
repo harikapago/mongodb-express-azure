@@ -156,6 +156,72 @@ app.get('/fetch-audio-by-category/:category', async (req, res) => {
   }
 });
 
+// ------------------------------------------question database---------------------------
+
+
+// Define your question schema and model using Mongoose
+const questionSchema = new mongoose.Schema({
+  questionNumber: Number,
+  category: String,
+  engquetxt: String,
+  telquetxt: String,
+  engrcd: Buffer,
+  telrcd: Buffer,
+  contentType: String,
+});
+
+const Question = mongoose.model('Question', questionSchema);
+
+app.post('/upload-question', upload.fields([
+  { name: 'engrcd', maxCount: 1 },
+  { name: 'telrcd', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { questionNumber, category, engquetxt, telquetxt } = req.body;
+    const engrcd = req.files['engrcd'][0].buffer;
+    const telrcd = req.files['telrcd'][0].buffer;
+    const contentType = req.files['engrcd'][0].mimetype;
+
+    const question = new Question({ questionNumber, category, engquetxt, telquetxt, engrcd, telrcd, contentType });
+    await question.save();
+
+    res.status(201).json({ message: 'Question uploaded successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/fetch-all-questions', async (req, res) => {
+  try {
+    const allQuestions = await Question.find({});
+    res.status(200).json(allQuestions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add this route to post question data
+app.post('/post-question', upload.fields([
+  { name: 'engrcd', maxCount: 1 },
+  { name: 'telrcd', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { questionNumber, category, engquetxt, telquetxt } = req.body;
+    const engrcd = req.files['engrcd'][0].buffer;
+    const telrcd = req.files['telrcd'][0].buffer;
+    const contentType = req.files['engrcd'][0].mimetype;
+
+    const question = new Question({ questionNumber, category, engquetxt, telquetxt, engrcd, telrcd, contentType });
+    await question.save();
+
+    res.status(201).json({ message: 'Question posted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 
