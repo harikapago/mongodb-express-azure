@@ -284,7 +284,17 @@ app.post('/post-question', upload.fields([
     res.status(500).json({ error: 'Server error' });
   }
 });
-
+// -------------------------------------------delete all questions---------
+app.delete('/delete-all-questions', async (req, res) => {
+  try {
+    // Delete all questions in the database
+    await Question.deleteMany({});
+    res.status(200).json({ message: 'All questions deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 // Add this route to delete questions by engquetext
 app.delete('/delete-question-by-engquetext/:engquetext', async (req, res) => {
   try {
