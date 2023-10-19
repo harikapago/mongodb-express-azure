@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const app = express();
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 app.use(cors());
 app.use(express.json());
