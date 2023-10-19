@@ -350,6 +350,28 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Get data of all registered agents
+app.get('/agents', async (req, res) => {
+  try {
+    const agents = await Agent.find({}, { password: 0 });
+    res.status(200).json(agents);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete all registered agents
+app.delete('/agents', async (req, res) => {
+  try {
+    await Agent.deleteMany({});
+    res.status(200).json({ message: 'All agents deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 // Start the Express server
 app.listen(port, () => {
