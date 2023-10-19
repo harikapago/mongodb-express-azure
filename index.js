@@ -3,12 +3,10 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const app = express();
 const cors = require('cors');
-// test
 
 app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 3000;
-
 
 // mongoose.connect('mongodb+srv://harika:harika@cluster0.lyzjf6y.mongodb.net/?retryWrites=true&w=majority')
 // .then(() => {
@@ -32,6 +30,20 @@ db.once('open', () => {
   console.log('Connected to database');
 });
 
+
+
+// ----------------------------------------------------file path storage--------------------
+const { BlobServiceClient, StorageSharedKeyCredential } = require("@azure/storage-blob");
+
+const accountName = "surveyappanswers";
+const accountKey = "/z7TbEOSeMD/CNN/KrNzhpxbqhaiV620aRfLBLRi9nhhiE4AyN9gAG/MywUOzXWpfOqwNctMSFBF+AStE1wa2g==";
+const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+
+const blobServiceClient = new BlobServiceClient(`https://${accountName}.blob.core.windows.net`, sharedKeyCredential);
+const containerName = "surveyappanswers";
+const containerClient = blobServiceClient.getContainerClient(containerName);
+
+
 // Set up multer for handling file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -42,7 +54,7 @@ const audioSchema = new mongoose.Schema({
   surveyId: String,
   category: String,
   questionNumber: Number,
-  audioData: Buffer,
+  audioPath: String,
   contentType: String,
 });
 
@@ -51,11 +63,20 @@ const Audio = mongoose.model('Audio', audioSchema);
 // Create an API endpoint for uploading audio files
 app.post('/upload', upload.single('audio'), async (req, res) => {
   try {
-    const { agent,surveyId, category, questionNumber } = req.body;
+    const { agent, surveyId, category, questionNumber } = req.body;
     const audioData = req.file.buffer;
     const contentType = req.file.mimetype;
 
-    const audio = new Audio({ agent,surveyId, category, questionNumber, audioData, contentType });
+    const audioFileName = `${agent}_${surveyId}_${category}_${questionNumber}.mp3`;
+    const blockBlobClient = containerClient.getBlockBlobClient(audioFileName);
+
+    await blockBlobClient.uploadData(audioData, {
+      blobHTTPHeaders: { blobContentType: contentType },
+    });
+
+    const audioPath = `${containerClient.url}/${audioFileName}`;
+
+    const audio = new Audio({ agent, surveyId, category, questionNumber, audioPath, contentType });
     await audio.save();
 
     res.status(201).json({ message: 'Audio uploaded successfully' });
@@ -64,6 +85,7 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 
 // Add this route to fetch all data
@@ -120,6 +142,7 @@ app.delete('/delete-all-audio', async (req, res) => {
   }
 });
 
+
 // Add this route to fetch audio data by agent
 app.get('/fetch-audio-by-agent/:agent', async (req, res) => {
   try {
@@ -155,6 +178,8 @@ app.get('/fetch-audio-by-category/:category', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
 
 // ------------------------------------------question database---------------------------
 
