@@ -248,7 +248,7 @@ async function uploadToAzureStorage(fileName, data, contentType) {
 
 // Function to get the URL of a file in Azure Storage
 function getAzureStorageUrl(fileName) {
-  return `${containerClient.url}/${fileName}`;
+  return `${containerClient2.url}/${fileName}`;
 }
 
 // Rest of your code for fetching questions, posting questions, etc.
