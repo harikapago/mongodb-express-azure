@@ -279,6 +279,74 @@ app.delete('/delete-question-by-questionNumber/:questionNumber', async (req, res
   }
 });
 
+// -----------------------------------agent registration-------------------------------
+
+const agentSchema = new mongoose.Schema({
+  agentId: {
+    type: String,
+    unique: true, // Ensure agentId is unique
+    required: true,
+  },
+  name: String,
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  constituency: String,
+  password: String,
+});
+
+const Agent = mongoose.model('Agent', agentSchema);
+
+// Function to generate a unique 5-digit agent ID
+const generateAgentId = async () => {
+  const randomId = (Math.random() * 90000 + 10000).toFixed(0); // Generate a 5-digit random number
+  const isUnique = await Agent.findOne({ agentId: randomId });
+  if (isUnique) {
+    // If the generated ID is not unique, try again
+    return generateAgentId();
+  }
+  return randomId;
+};
+
+app.post('/register', async (req, res) => {
+  try {
+    const { name, email, constituency, password } = req.body;
+    const agentId = await generateAgentId(); // Generate a unique agent ID
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const agent = new Agent({ agentId, name, email, constituency, password: hashedPassword });
+    await agent.save();
+
+    res.status(201).json({ message: 'Agent registered successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const agent = await Agent.findOne({ email });
+
+    if (agent) {
+      const match = await bcrypt.compare(password, agent.password);
+      if (match) {
+        res.status(200).json({ message: 'Login successful' });
+      } else {
+        res.status(401).json({ error: 'Invalid email or password' });
+      }
+    } else {
+      res.status(401).json({ error: 'Invalid email or password' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 // Start the Express server
