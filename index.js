@@ -33,16 +33,13 @@ db.once('open', () => {
 
 
 // ----------------------------------------------------file path storage--------------------
-const { BlobServiceClient, StorageSharedKeyCredential } = require("@azure/storage-blob");
+const { BlobServiceClient } = require("@azure/storage-blob");
 
-const accountName = "surveyappanswers";
-const accountKey = "/z7TbEOSeMD/CNN/KrNzhpxbqhaiV620aRfLBLRi9nhhiE4AyN9gAG/MywUOzXWpfOqwNctMSFBF+AStE1wa2g==";
-const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
+const azureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=surveyappanswers;AccountKey=/z7TbEOSeMD/CNN/KrNzhpxbqhaiV620aRfLBLRi9nhhiE4AyN9gAG/MywUOzXWpfOqwNctMSFBF+AStE1wa2g==;EndpointSuffix=core.windows.net";
+const blobServiceClient = BlobServiceClient.fromConnectionString(azureStorageConnectionString);
 
-const blobServiceClient = new BlobServiceClient(`https://${accountName}.blob.core.windows.net`, sharedKeyCredential);
 const containerName = "surveyappanswers";
 const containerClient = blobServiceClient.getContainerClient(containerName);
-
 
 // Set up multer for handling file uploads
 const storage = multer.memoryStorage();
@@ -67,7 +64,7 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
     const audioData = req.file.buffer;
     const contentType = req.file.mimetype;
 
-    const audioFileName = `${agent}_${surveyId}_${category}_${questionNumber}.mp3`;
+    const audioFileName = `${agent}_${surveyId}_${category}_${questionNumber}.wav`;
     const blockBlobClient = containerClient.getBlockBlobClient(audioFileName);
 
     await blockBlobClient.uploadData(audioData, {
@@ -85,7 +82,6 @@ app.post('/upload', upload.single('audio'), async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 
 // Add this route to fetch all data
