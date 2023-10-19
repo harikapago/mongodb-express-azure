@@ -182,14 +182,13 @@ app.get('/fetch-audio-by-category/:category', async (req, res) => {
 // ------------------------------------------question database---------------------------
 
 
-// Define your question schema and model using Mongoose
 const questionSchema = new mongoose.Schema({
   questionNumber: Number,
   category: String,
   engquetxt: String,
   telquetxt: String,
-  engrcd: Buffer,
-  telrcd: Buffer,
+  engrcdUrl: String, // Store the URL for the English audio
+  telrcdUrl: String, // Store the URL for the Telugu audio
   contentType: String,
 });
 
@@ -201,11 +200,32 @@ app.post('/upload-question', upload.fields([
 ]), async (req, res) => {
   try {
     const { questionNumber, category, engquetxt, telquetxt } = req.body;
-    const engrcd = req.files['engrcd'][0].buffer;
-    const telrcd = req.files['telrcd'][0].buffer;
+    const engrcdBuffer = req.files['engrcd'][0].buffer;
+    const telrcdBuffer = req.files['telrcd'][0].buffer;
     const contentType = req.files['engrcd'][0].mimetype;
 
-    const question = new Question({ questionNumber, category, engquetxt, telquetxt, engrcd, telrcd, contentType });
+    // Upload audio files to Azure Storage
+    const engrcdFileName = `${category}_${questionNumber}_engrcd.mp3`;
+    const telrcdFileName = `${category}_${questionNumber}_telrcd.mp3`;
+    
+    await uploadToAzureStorage(engrcdFileName, engrcdBuffer, contentType);
+    await uploadToAzureStorage(telrcdFileName, telrcdBuffer, contentType);
+
+    // Create URLs for the uploaded audio files
+    const engrcdUrl = getAzureStorageUrl(engrcdFileName);
+    const telrcdUrl = getAzureStorageUrl(telrcdFileName);
+
+    // Create a new question document with the file path URLs
+    const question = new Question({
+      questionNumber,
+      category,
+      engquetxt,
+      telquetxt,
+      engrcdUrl,
+      telrcdUrl,
+      contentType
+    });
+    
     await question.save();
 
     res.status(201).json({ message: 'Question uploaded successfully' });
@@ -214,6 +234,25 @@ app.post('/upload-question', upload.fields([
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+
+const containerName2 = "questionssurveyapp";
+
+// Get a reference to your specific container
+const containerClient2 = blobServiceClient.getContainerClient(containerName2);
+// Function to upload a file to Azure Storage
+async function uploadToAzureStorage(fileName, data, contentType) {
+  const blockBlobClient = containerClient2.getBlockBlobClient(fileName);
+  await blockBlobClient.uploadData(data, { blobHTTPHeaders: { blobContentType: contentType } });
+}
+
+// Function to get the URL of a file in Azure Storage
+function getAzureStorageUrl(fileName) {
+  return `${containerClient.url}/${fileName}`;
+}
+
+// Rest of your code for fetching questions, posting questions, etc.
+
 
 app.get('/fetch-all-questions', async (req, res) => {
   try {
