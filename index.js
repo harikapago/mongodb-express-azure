@@ -364,6 +364,16 @@ const generateAgentId = async () => {
 app.post('/register', async (req, res) => {
   try {
     const { name, email, constituency, password } = req.body;
+
+    // Check if the email already exists in the database
+    const existingAgent = await Agent.findOne({ email });
+
+    if (existingAgent) {
+      // Email already exists
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // If email doesn't exist, proceed with registration
     const agentId = await generateAgentId(); // Generate a unique agent ID
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
